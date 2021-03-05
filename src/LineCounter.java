@@ -104,7 +104,7 @@ public class LineCounter {
                     if (linesPerFile[i] == 0) {
                         printStatistics(args[j], 0);
                     } else {
-                        double percentOverlapped = (double) countOverlapped[j] / linesPerFile[i] * DECIMAL_PERCENT;
+                        double percentOverlapped = (double) (countOverlapped[j] + 1) / linesPerFile[i] * DECIMAL_PERCENT;
                         printStatistics(args[j], (int)percentOverlapped);
                     }
                 }
