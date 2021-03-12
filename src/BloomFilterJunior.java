@@ -1,13 +1,13 @@
 /*
- * NAME: TODO
- * PID: TODO
+ * NAME: Diane Li
+ * PID: A15773774
  */
 
 /**
- * TODO
- *
- * @author TODO
- * @since TODO
+ * Simple prototype of a bloom filter backed by a boolean array to simulate the hash table,
+ * and using three hash functions.
+ * @author Diane Li
+ * @since 03/11/2021
  */
 public class BloomFilterJunior {
 

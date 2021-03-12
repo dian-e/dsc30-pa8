@@ -58,6 +58,13 @@ public class HashTable implements IHashTable {
     public boolean insert(String value) {
         if (value == null) { throw new NullPointerException(); }
 
+        // return false if duplicate
+        if (lookup(value)) { return false; }
+
+        // rehashes before inserting if necessary
+        double loadFactor = (double) this.size() / this.capacity();
+        if (loadFactor > LF_REHASH) { rehash(); }
+
         int bucket = hashString(value);
         int bucketsProbed = 0;
         String elem;
@@ -66,18 +73,10 @@ public class HashTable implements IHashTable {
             // insert item into next empty bucket or return false if already existing
             elem = this.table[bucket];
             if (elem == null || elem == bridge) {
-                // rehashes before inserting if necessary
-                double loadFactor = (double)this.size() / this.capacity();
-                if (loadFactor > LF_REHASH) {
-                    rehash();
-                } else {
-                    this.table[bucket] = value;
-                    this.size++;
-                    this.countCollisions += bucketsProbed;
-                    return true;
-                }
-            } else if (elem.equals(value)) {
-                return false;
+                this.table[bucket] = value;
+                this.size++;
+                this.countCollisions += bucketsProbed;
+                return true;
             }
 
             // increment bucket index and number of buckets probed
@@ -128,7 +127,7 @@ public class HashTable implements IHashTable {
         int bucketsProbed = 0;
         String elem = this.table[bucket];
 
-        while (elem != null && bucketsProbed < this.capacity()) {
+        while (elem != null) {
             if (elem.equals(value)) { return true; }
 
             // increment bucket index and number of buckets probed, update element
@@ -163,15 +162,17 @@ public class HashTable implements IHashTable {
 
     /**
      * Rehashes the table by doubling the capacity and iterating through the old table to re-insert
-     * event valid element to the new table
+     * every valid element to the new table
      */
     private void rehash() {
-        double loadFactor = this.size() / this.capacity();
+        double loadFactor = (double) this.size() / this.capacity();
         this.statsLog += "Before rehash # " + this.countRehashes + ": load factor " +
                 String.format("%.2f", loadFactor) + ", " +
                 this.countCollisions + " collision(s).\n";
 
-        String[] oldTable = this.table;
+        String[] oldTable = new String[this.capacity()];
+        for (int i = 0; i < this.table.length; i++) { oldTable[i] = this.table[i]; }
+
         this.table = new String[this.capacity() * REHASHED_SIZE];
         this.size = 0;
         for (String elem : oldTable) {
@@ -188,7 +189,7 @@ public class HashTable implements IHashTable {
      * Returns the hash value of the given string using the Simplified CRC hash function
      * @param value to be hashed
      */
-    private int hashString(String value) {
+    public int hashString(String value) {
         int hashValue = 0;
         for (int i = 0; i < value.length(); i++) {
             int leftShiftedValue = hashValue << LEFT_SHIFT; // left shift
@@ -196,7 +197,7 @@ public class HashTable implements IHashTable {
             // | is bitsize OR, ^ is bitwise XOR
             hashValue = (leftShiftedValue | rightShiftedValue) ^ value.charAt(i);
         }
-        return Math.abs(hashValue % this.table.length);
+        return Math.abs(hashValue % this.capacity());
     }
 
     /**
