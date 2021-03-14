@@ -15,26 +15,33 @@ public class BloomFilterJunior {
     private static final int MIN_INIT_CAPACITY = 50;
     private static final int BASE256_LEFT_SHIFT = 8;
     private static final int HORNERS_BASE = 27;
+    private static final int LEFT_SHIFT = 5;
+    private static final int RIGHT_SHIFT = 27;
 
     /* Instance variables */
     private boolean[] table;
 
     public BloomFilterJunior(int capacity) {
-        /* TODO */
+        if (capacity < MIN_INIT_CAPACITY) { throw new IllegalArgumentException(); }
+        else { this.table = new boolean[capacity]; }
     }
 
     public void insert(String value) {
-        /* TODO */
+        if (value == null) { throw new NullPointerException(); }
+
+        this.table[hashBase256(value)] = true;
+        this.table[hashCRC(value)] = true;
+        this.table[hashHorners(value)] = true;
     }
 
     public boolean lookup(String value) {
-        /* TODO */
-        return false;
+        if (value == null) { throw new NullPointerException(); }
+
+        return (table[hashBase256(value)] && table[hashCRC(value)] && table[hashHorners(value)]);
     }
 
     /**
      * Base-256 hash function.
-     *
      * @param value string to hash
      * @return hash value
      */
@@ -48,18 +55,22 @@ public class BloomFilterJunior {
 
     /**
      * Simplified CRC hash function.
-     *
      * @param value string to hash
      * @return hash value
      */
     private int hashCRC(String value) {
-        /* TODO: Copy and paste from your HashTable */
-        return -1;
+        int hashValue = 0;
+        for (int i = 0; i < value.length(); i++) {
+            int leftShiftedValue = hashValue << LEFT_SHIFT; // left shift
+            int rightShiftedValue = hashValue >>> RIGHT_SHIFT; // right shift
+            // | is bitsize OR, ^ is bitwise XOR
+            hashValue = (leftShiftedValue | rightShiftedValue) ^ value.charAt(i);
+        }
+        return Math.abs(hashValue % this.table.length);
     }
 
     /**
      * Horner's hash function.
-     *
      * @param value string to hash
      * @return hash value
      */
@@ -70,4 +81,5 @@ public class BloomFilterJunior {
         }
         return Math.abs(hash % table.length);
     }
+
 }
